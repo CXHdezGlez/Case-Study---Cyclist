@@ -1,0 +1,235 @@
+---
+title: "Cyclist - Informe"
+author: "Carlos Hernández"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme:
+      bg: "#282727"
+      fg: "#EDEDED"
+      base_font:
+        google: "Prompt"
+fontsize: 12pt
+lang: es-MX
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+```
+
+
+~~~
+Este documento forma parte del ejercicio práctico final del curso "Google Data Analytics".
+~~~
+
+___
+
+## Mapa de ruta del caso práctico.
+
+
+***PREGUNTAR***
+
+La tarea empresarial consiste en:
+
+  "Establecer las diferencias en cuanto al uso de las bicicletas atendiendo al tipo de clientes del programa (ciclistas ocasionales y socios anuales)".
+
+
+Los interesados clave son:
+
+* Lily Moreno
+* Equipo ejecutivo de *Cyclistic*
+
+
+
+
+***PREPARAR***
+
+Los datos para el desarrollo de este ejercicio práctico se obtivieron en el siguiente [link](https://divvy-tripdata.s3.amazonaws.com/index.html)
+
+Los datos han sido proporcionados por Motivate International Inc. bajo esta [licencia](https://ride.divvybikes.com/data-license-agreement).) 
+
+  ![](https://altago.com/wp-content/uploads/MotivateLogo.jpg){width=200px}         ![](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6xAqPKD66S5OJRor_WRKv_MK5CLLDiqbCL7v8KMm3_uvKbrmMUyZDr5JXzQx_xc-_tg&usqp=CAU){width=194px}
+
+Los datos proporcionados son públicos, permitiendo reproducirlos, analizarlos, copiarlos, modificarlos y distribuirlos.
+
+Los datos están organizados en archivos que recogen los viajes mensuales en bicicleta, indicando las fechas y horas de salida y llegada a una estación, así como la georeferenciación de las mismas. La base recoge, además, datos sobre los tipos de bicicleta (*classic bike*, *docked bike* y *electric bike*). De igual manera, se recogen datos sobre los tipos de usuarios del servicio (*casual* y *member*). 
+
+
+Los archivos se cargaron a Google Cloud Storage, debido al tamaño de los mismos. Una vez subidos a la nube, se creo la base de datos "*caso-cyclist*", conteniendo esta las 12 tablas con los datos de los viajes.
+
+ ![Bucket Cyclistic](http://datnsght.cloud/wp-content/uploads/2022/07/Bucket_Cyclist.png){width=400px} ![Base de datos Cyclistic](http://datnsght.cloud/wp-content/uploads/2022/07/Base_Cyclist.png){width=503.5px}
+
+Las tablas se importaron a R mediante la función "read.csv"
+
+```{r import_tables}
+`202206.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202206-divvy-tripdata.csv")
+`202205.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202205-divvy-tripdata.csv")
+`202204.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202204-divvy-tripdata.csv")
+`202203.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202203-divvy-tripdata.csv")
+`202202.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202202-divvy-tripdata.csv")
+`202201.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202201-divvy-tripdata.csv")
+`202112.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202112-divvy-tripdata.csv")
+`202111.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202111-divvy-tripdata.csv")
+`202110.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202110-divvy-tripdata.csv")
+`202109.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202109-divvy-tripdata.csv")
+`202108.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202108-divvy-tripdata.csv")
+`202107.divvy.tripdata` <- read.csv("D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/divvy-tripdata/202107-divvy-tripdata.csv")
+```
+
+***PROCESAR***
+
+Con el objetivo de realizar el análisis a partir de una única base de datos concentrada, se decidión unir todas las bases en una sola (*trips*). Para ello, primeramente se realizó una limpieza de los nombres de las variables con **janitor::clean_names**. Se especificó (case = "title") como argumento para garantizar el aspecto visual en los gráficos posteriores. Seguidamente, se realizó un análisis de cada base de datos con la función **skimr::skim_without_charts**, con el objetivo de verificar las características de las 13 variables en cada una de dichas bases.
+
+```{r pack_lib_jan_skimr, eval=FALSE, include=FALSE}
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+install.packages("janitor", repos = "http://cran.us.r-project.org")
+install.packages("skimr", repos = "http://cran.us.r-project.org")
+library(tidyverse)
+library(janitor)
+library(skimr)
+```
+
+```{r clean_names}
+`202206.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202205.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202204.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202203.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202202.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202201.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202112.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202111.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202110.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202109.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202108.divvy.tripdata` %>% 
+  clean_names(case = "title")
+`202107.divvy.tripdata` %>% 
+  clean_names(case = "title")
+```
+
+```{r caract_bases, include=FALSE}
+skim(`202206.divvy.tripdata`)
+skim(`202205.divvy.tripdata`)
+skim(`202204.divvy.tripdata`)
+skim(`202203.divvy.tripdata`)
+skim(`202202.divvy.tripdata`)
+skim(`202201.divvy.tripdata`)
+skim(`202112.divvy.tripdata`)
+skim(`202111.divvy.tripdata`)
+skim(`202110.divvy.tripdata`)
+skim(`202109.divvy.tripdata`)
+skim(`202108.divvy.tripdata`)
+skim(`202107.divvy.tripdata`)
+```
+
+Una vez confirmado que las bases contienen la misma cantidad y el mismo tipo de variables, se procedió a integrarlas en una sola, mediante el uso de **base::rbind**, y asignarle por nombre "trips" a la base resultante.
+
+```{r uniendo_bases, eval=FALSE, include=FALSE}
+trips <- rbind(`202206.divvy.tripdata`, `202205.divvy.tripdata`, `202204.divvy.tripdata`, `202203.divvy.tripdata`, `202202.divvy.tripdata`, 
+`202201.divvy.tripdata`, `202112.divvy.tripdata`, `202111.divvy.tripdata`, `202110.divvy.tripdata`, `202109.divvy.tripdata`, 
+`202108.divvy.tripdata`, `202107.divvy.tripdata`)
+```
+
+Para evitar futuros conflictos o incongruencias en el análisis, se aplicó la función **stats:na.omit** para eliminar los casos incompletos de la base (5374 valores perdidos correspondientes a "end_lat" y "end_lng").
+
+```{r removiendo_NA, eval=FALSE, include=FALSE}
+trips <- na.omit(trips)
+```
+
+Por último, para poder realizar análisis relacionados con patrones temporales, se utilizó el paquete **lubridate**, en particular las funciones **as_datetime** y **wday**.
+
+```{r}
+library(lubridate)
+
+# agregar columna duracion_seg
+
+trips_m <- mutate(trips, 
+       duracion_seg = as_datetime(ended_at) - as_datetime(started_at)
+)
+
+# añadir columnas dia_inicio y dia_fin
+trips_mod <- mutate(trips_m, dia_inicio = wday(started_at, label = TRUE, abbr = TRUE), 
+       dia_fin = wday(ended_at, label = TRUE, abbr = TRUE)
+)
+```
+
+***ANALIZAR***
+
+
+
+```{r}
+trips_mod %>% 
+  summarize(dur_min = min(duracion_seg))
+
+trips_mod %>% 
+  summarize(dur_max = max(duracion_seg))
+
+trips_mod %>% 
+  summarize(dur_prom = mean(duracion_seg))
+
+# Comprobando en cuantos registros se capturó incorrectamente la hora de salida y/o llegada
+
+durac_neg <- trips_mod %>% 
+  filter(duracion_seg < 0)
+
+# Generando un df excluyendo las duraciones iguales a cero o negativas
+
+trips_act <- trips_mod[trips_mod$duracion_seg > 0, ]
+
+# Comprobando que la duración mínima es de al menos 1 seg
+trips_act %>% 
+  summarize(dur_min = min(duracion_seg))
+
+trips_act %>% 
+  summarize(dur_max = max(duracion_seg))
+
+trips_act %>% 
+  summarize(dur_prom = mean(duracion_seg))
+
+trips_act %>% 
+  summarize(dur_mediana = median(duracion_seg))
+
+
+# Convirtiendo duracion_seg de difftime a numeric
+
+trips_act$duracion_seg <- as.numeric(trips_act$duracion_seg)
+
+
+# para calcular la moda de duración
+
+
+
+# medidas de posición por grupo de clietes
+
+trips_act %>% 
+  group_by(member_casual) %>% 
+  summarize(dur_min = min(duracion_seg))
+
+trips_act %>% 
+  group_by(member_casual) %>% 
+  summarize(dur_max = max(duracion_seg))
+
+trips_act %>% 
+  group_by(member_casual) %>% 
+  summarize(dur_prom = mean(duracion_seg))
+
+trips_act %>% 
+  group_by(member_casual) %>% 
+  summarize(dur_mediana = median(duracion_seg))
+
+
+
+aggregate(trips_act$duracion_seg ~ trips_act$member_casual + trips_act$dia_inicio, FUN = mean)
+aggregate(trips_act$duracion_seg ~ trips_act$member_casual + trips_act$dia_inicio, FUN = max)
+aggregate(trips_act$duracion_seg ~ trips_act$member_casual + trips_act$dia_inicio, FUN = min)
+aggregate(trips_act$duracion_seg ~ trips_act$member_casual + trips_act$dia_inicio, FUN = median)

@@ -81,43 +81,49 @@ Las tablas se importaron a R mediante la función "read.csv"
 
 Con el objetivo de realizar el análisis a partir de una única base de datos concentrada, se decidión unir todas las bases en una sola (*trips*). Para ello, primeramente se realizó una limpieza de los nombres de las variables con **janitor::clean_names**. Se especificó (case = "title") como argumento para garantizar el aspecto visual en los gráficos posteriores. Seguidamente, se realizó un análisis de cada base de datos con la función **skimr::skim**, con el objetivo de verificar las características de las 13 variables en cada una de dichas bases.
 
-```{r pack_lib_jan_skimr, eval=FALSE, include=FALSE}
+
+```{r clean_names}
 install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 install.packages("janitor", repos = "http://cran.us.r-project.org")
 install.packages("skimr", repos = "http://cran.us.r-project.org")
 library(tidyverse)
+library(dplyr)
 library(janitor)
 library(skimr)
-```
 
-```{r clean_names}
+install.packages("janitor")
+install.packages("skimr")
+library(dplyr)
+library(skimr)
+library(janitor)
+
+
 `202206.divvy.tripdata` <- `202206.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202205.divvy.tripdata` <- `202205.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202204.divvy.tripdata` <- `202204.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202203.divvy.tripdata` <- `202203.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202202.divvy.tripdata` <- `202202.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202201.divvy.tripdata` <- `202201.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202112.divvy.tripdata` <- `202112.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202111.divvy.tripdata` <- `202111.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202110.divvy.tripdata` <- `202110.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202109.divvy.tripdata` <- `202109.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202108.divvy.tripdata` <- `202108.divvy.tripdata` %>% 
-  clean_names(case = "title")
+  clean_names()
 `202107.divvy.tripdata` <- `202107.divvy.tripdata` %>% 
-  clean_names(case = "title")
-```
+  clean_names()
 
-```{r caract_bases, include=FALSE}
+
 skim(`202206.divvy.tripdata`)
 skim(`202205.divvy.tripdata`)
 skim(`202204.divvy.tripdata`)
@@ -131,6 +137,7 @@ skim(`202109.divvy.tripdata`)
 skim(`202108.divvy.tripdata`)
 skim(`202107.divvy.tripdata`)
 ```
+
 
 Una vez confirmado que las bases contienen la misma cantidad y el mismo tipo de variables, se procedió a integrarlas en una sola, mediante el uso de **base::rbind**, y asignarle por nombre "trips" a la base resultante.
 
@@ -154,15 +161,15 @@ library(lubridate)
 
 # Definir nuevas variables: Date, Month, Day, Year, Day_of_week
 
-trips$Date <- as.Date(trips$`Started at`) # El formato por defecto el YYYY-MM-DD
-trips$Month <- format(as.Date(trips$Date), "%m")
-trips$Day <- format(as.Date(trips$Date), "%d")
-trips$Year <- format(as.Date(trips$Date), "%Y")
-trips$Day_of_week <- format(as.Date(trips$Date), "%A")
+trips$date <- as.Date(trips$started_at) # El formato por defecto el YYYY-MM-DD
+trips$Month <- format(as.Date(trips$date), "%m")
+trips$Day <- format(as.Date(trips$date), "%d")
+trips$Year <- format(as.Date(trips$date), "%Y")
+trips$Day_of_week <- format(as.Date(trips$date), "%A")
 
 
-# Calcular la duración de los viajes (en segundos) como una nueva variable "Durac"
-trips$Durac <- difftime(ymd_hms(trips$`Ended at`), ymd_hms(trips$`Started at`))
+# Calcular la duración de los viajes (en segundos) como una nueva variable "durac"
+trips$durac <- difftime(ymd_hms(trips$ended_at), ymd_hms(trips$started_at))
 ```
 
 ***ANALIZAR***
@@ -171,51 +178,49 @@ primeramente, se analizan estadísticos descriptivos para la variable "Durac", p
 
 ```{r}
 trips %>% 
-  summarize(dur_min = min(Durac))
+  summarize(dur_min = min(durac))
 
 trips %>% 
-  summarize(dur_max = max(Durac))
+  summarize(dur_max = max(durac))
 
 trips %>% 
-  summarize(dur_prom = mean(Durac))
+  summarize(dur_prom = mean(durac))
 ```
 
 A continuación, se convierte la variable "Durac" a numeric, se crea una nueva base de datos con el subconjunto de valores con duraciones de viajes mayores que cero. Finalmente, se verifica mediante los estadísticos de dispersión que, efectivamente, no hayan valores negativos para "Durac".
 
 ```{r}
 # Convertir "durac" de Factor a numeric
-trips$Durac <- as.numeric(as.character(trips$Durac))
-is.numeric(trips$Durac)
+trips$durac <- as.numeric(as.character(trips$durac))
+is.numeric(trips$durac)
 
 summary(trips)
 
 # Seleccionando solo los viajes con duración mayor que cero
 
 
-trips2 <- trips[trips$Durac > 0,]
+trips2 <- trips[trips$durac > 0,]
 
 # Cmprobando
 
 trips2 %>% 
-  summarize(dur_min = min(Durac))
+  summarize(dur_min = min(durac))
 
 trips2 %>% 
-  summarize(dur_max = max(Durac))
+  summarize(dur_max = max(durac))
 
 trips2 %>% 
-  summarize(dur_prom = mean(Durac))
+  summarize(dur_prom = mean(durac))
 ```
 
 Otro análisis efectuado fue calcular la moda de la variable "Durac", siendo que el valor que más se repite es 349 seg (aproximadamente 6 minutos). Para ello, se necesitó utilizar **modeest::modeest**.
 
 ```{r}
-# para calcular la moda de duración
+# Para calcular la moda de duración
 install.packages("modeest")
 library(modeest)
 
-mlv(trips2$Durac, method = "mfv") # confrimar antes que Durac sea numeric
-
-?mlv
+mlv(trips2$durac, method = "mfv") # confrimar antes que durac sea numeric 
 ```
 
 Otro análisis efectuado fue el de los estadísticos de dispersión desagregados por "member_casual" y "rideable_type".
@@ -224,38 +229,38 @@ Otro análisis efectuado fue el de los estadísticos de dispersión desagregados
 # medidas de disperción por grupo de clientes
 
 trips2 %>% 
-  group_by(`Member Casual`) %>% 
-  summarize(dur_min = min(Durac))
+  group_by(member_casual) %>% 
+  summarize(dur_min = min(durac))
 
 trips2 %>% 
-  group_by(`Member Casual`) %>% 
-  summarize(dur_max = max(Durac))
+  group_by(member_casual) %>% 
+  summarize(dur_max = max(durac))
 
 trips2 %>% 
-  group_by(`Member Casual`) %>% 
-  summarize(dur_prom = mean(Durac))
+  group_by(member_casual) %>% 
+  summarize(dur_prom = mean(durac))
 
 trips2 %>% 
-  group_by(`Member Casual`) %>% 
-  summarize(dur_mediana = median(Durac))
+  group_by(member_casual) %>% 
+  summarize(dur_mediana = median(durac))
 
 # medidas de disperción por grupo de "Rideable Type"
 
 trips2 %>% 
-  group_by(`Rideable Type`) %>% 
-  summarize(dur_min = min(Durac))
+  group_by(rideable_type) %>% 
+  summarize(dur_min = min(durac))
 
 trips2 %>% 
-  group_by(`Rideable Type`) %>% 
-  summarize(dur_max = max(Durac))
+  group_by(rideable_type) %>% 
+  summarize(dur_max = max(durac))
 
 trips2 %>% 
-  group_by(`Rideable Type`) %>% 
-  summarize(dur_prom = mean(Durac))
+  group_by(rideable_type) %>% 
+  summarize(dur_prom = mean(durac))
 
 trips2 %>% 
-  group_by(`Rideable Type`) %>% 
-  summarize(dur_mediana = median(Durac))
+  group_by(rideable_type) %>% 
+  summarize(dur_mediana = median(durac))
 ```
 
 A continuación, se presenta el análisis de: 1) la duración del viaje por tipo de cliente y 2) duración del viaje por tipo de cliente y por día de la semana.
@@ -263,28 +268,28 @@ A continuación, se presenta el análisis de: 1) la duración del viaje por tipo
 ```{r}
 # comparar duración del viaje por members y casuals
 
-aggregate(trips2$Durac ~ trips2$`Member Casual`, FUN = mean)
-aggregate(trips2$Durac ~ trips2$`Member Casual`, FUN = median)
-aggregate(trips2$Durac ~ trips2$`Member Casual`, FUN = max)
-aggregate(trips2$Durac ~ trips2$`Member Casual`, FUN = min)
+aggregate(trips2$durac ~ trips2$member_casual, FUN = mean)
+aggregate(trips2$durac ~ trips2$member_casual, FUN = median)
+aggregate(trips2$durac ~ trips2$member_casual, FUN = max)
+aggregate(trips2$durac ~ trips2$member_casual, FUN = min)
 
 ?aggregate
 
 
 # comparar duración del viaje por members y casuals por día de la semana
 
-aggregate(trips2$Durac ~ trips2$`Member Casual` + trips2$Day_of_week, FUN = mean)
-aggregate(trips2$Durac ~ trips2$`Member Casual` + trips2$Day_of_week, FUN = max)
-aggregate(trips2$Durac ~ trips2$`Member Casual` + trips2$Day_of_week, FUN = min)
-aggregate(trips2$Durac ~ trips2$`Member Casual` + trips2$Day_of_week, FUN = median)
+aggregate(trips2$durac ~ trips2$member_casual + trips2$Day_of_week, FUN = mean)
+aggregate(trips2$durac ~ trips2$member_casual + trips2$Day_of_week, FUN = max)
+aggregate(trips2$durac ~ trips2$member_casual + trips2$Day_of_week, FUN = min)
+aggregate(trips2$durac ~ trips2$member_casual + trips2$Day_of_week, FUN = median)
 
 # Analizar la información de los ciclistas por tipo y día de la semana 
 
 trips2 %>%
-  group_by(`Member Casual`, Day_of_week) %>%        # grupos por Tipo de usuario y Día de la semana
+  group_by(member_casual, Day_of_week) %>%        # grupos por Tipo de usuario y Día de la semana
   summarise(number_of_rides = n(),
-            average_duration = mean(Durac)) %>%     # Cálculo de la duración promedio
-  arrange(`Member Casual`, Day_of_week)	            # Ordenación por Tipo de usuario y Día de la semana	 
+            average_duration = mean(durac)) %>%     # Cálculo de la duración promedio
+  arrange(member_casual, Day_of_week)	            # Ordenación por Tipo de usuario y Día de la semana	  
 ```
 
 Por último, se crearon visualizaciones sobre el número de viajes por Tipo de usuario, así como por la duración promedio de los viajes.
@@ -292,22 +297,22 @@ Por último, se crearon visualizaciones sobre el número de viajes por Tipo de u
 ```{r}
 # Visualizar el número de viajes por tipo de ciclista
 trips2 %>% 
-  mutate(Day_of_week = wday(`Started at`, label = TRUE)) %>% 
-  group_by(`Member Casual`, Day_of_week) %>% 
+  mutate(Day_of_week = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, Day_of_week) %>% 
   summarise(number_of_rides = n()
-            ,average_duration = mean(Durac)) %>% 
-  arrange(`Member Casual`, Day_of_week)  %>% 
-  ggplot(aes(x = Day_of_week, y = number_of_rides, fill = `Member Casual`)) +
+            ,average_duration = mean(durac)) %>% 
+  arrange(member_casual, Day_of_week)  %>% 
+  ggplot(aes(x = Day_of_week, y = number_of_rides, fill = member_casual)) +
   geom_col(position = "dodge")
 
 # Visualización por duración promedio de viaje
 trips2 %>% 
-  mutate(Day_of_week = wday(`Started at`, label = TRUE)) %>% 
-  group_by(`Member Casual`, Day_of_week) %>% 
+  mutate(Day_of_week = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, Day_of_week) %>% 
   summarise(number_of_rides = n()
-            ,average_duration = mean(Durac)) %>% 
-  arrange(`Member Casual`, Day_of_week)  %>% 
-  ggplot(aes(x = Day_of_week, y = average_duration, fill = `Member Casual`)) +
+            ,average_duration = mean(durac)) %>% 
+  arrange(member_casual, Day_of_week)  %>% 
+  ggplot(aes(x = Day_of_week, y = average_duration, fill = member_casual)) +
   geom_col(position = "dodge")
 ```
 
@@ -315,6 +320,6 @@ trips2 %>%
 
 ```{r}
 # Creación de un archivo para análisis posterior
-counts <- aggregate(trips2$Durac ~ trips2$`Member Casual` + trips2$Day_of_week, FUN = mean)
+counts <- aggregate(trips2$durac ~ trips2$member_casual + trips2$Day_of_week, FUN = mean)
 write.csv(counts, file = "D:/3. DATA ANALYSIS/PROYECTOS/1. CASO_Cyclistic/durac_prom_viajes.csv")
 ```
